@@ -4,8 +4,6 @@ __pycache__/
 *$py.class
 
 # Ignore model checkpoint files (GitHub file size limit > 100MB)
-*.pt
-*.pth
 *.h5
 *.ckpt
 
