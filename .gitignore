@@ -1,0 +1,25 @@
+# Ignore Python byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Ignore model checkpoint files (GitHub file size limit > 100MB)
+*.pt
+*.pth
+*.h5
+*.ckpt
+
+# Environment
+.env
+.venv
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Streamlit
+.streamlit/
+
+# OS generated files
+.DS_Store
+Thumbs.db
