@@ -11,6 +11,9 @@ pinned: false
 
 # 🔍 AML Explainability: Attributive Masking Learning
 
+[![Hugging Face Spaces](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Spaces-blue)](https://huggingface.co/spaces/Prems1101/aml_XAI) 
+**Live Demo:** [https://huggingface.co/spaces/Prems1101/aml_XAI](https://huggingface.co/spaces/Prems1101/aml_XAI)
+
 This repository hosts an implementation of **Attributive Masking Learning (AML)** for explaining black-box NLP classification models (such as DistilBERT), fine-tuned on the SST-2 sentiment dataset. It features an interactive Streamlit UI that allows users to instantly visualize which words heavily influenced the model's prediction.
 
 ## 🚀 Two Modes of Explanation
