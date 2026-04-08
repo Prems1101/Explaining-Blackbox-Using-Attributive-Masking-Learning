@@ -16,7 +16,7 @@ st.set_page_config(page_title="AML Explainability", page_icon="🔍", layout="ce
 @st.cache_resource
 def load_models():
     paml = AMLExplainer(model_path="paml_best.pt")
-    faml = FAMLExplainer(model_path="faml_best.pt")
+    faml = FAMLExplainer(model_path="paml_best.pt")
     return paml, faml
 
 paml, faml = load_models()
