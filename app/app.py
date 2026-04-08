@@ -23,7 +23,7 @@ paml, faml = load_models()
 
 # ── UI ────────────────────────────────────────────────────────────────────────
 st.title("🔍 AML Explainability Demo")
-st.caption("Attributive Masking Learning — EMNLP 2024")
+st.caption("Attributive Masking Learning ")
 
 mode = st.radio("Select Model:", ["fAML", "pAML"], horizontal=True)
 text = st.text_area("Enter text:", "avengers is a best movie", height=80)
@@ -43,7 +43,7 @@ if st.button("Analyze", type="primary"):
     conf  = pred["score"]
 
     # ── Prediction ────────────────────────────────────────────────────────────
-    st.subheader("📊 Prediction")
+    st.subheader("📊 LLM Prediction")
     if label == "POSITIVE":
         st.success(f"{mode} → Label: **{label}**")
     else:

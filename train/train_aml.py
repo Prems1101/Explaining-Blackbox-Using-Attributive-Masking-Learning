@@ -27,7 +27,7 @@ from explain.masking_utils import soft_mask, inverse_mask, get_mask_embedding
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Device: {device}")
 
-# ── Hyperparameters (tuned on validation set per paper Section 3.3) ─────────
+# ── Hyperparameters ─────────
 LAMBDA_P   = 1.0   # preserve masked prediction
 LAMBDA_INV = 5.0   # destroy inverse-masked prediction
 LAMBDA_A   = 2.0   # sparsity regularisation
@@ -37,17 +37,17 @@ BATCH_SIZE = 8
 MAX_LEN    = 128
 TRAIN_SIZE = 68000
 
-# ── Load black-box model F (FROZEN) ─────────────────────────────────────────
+# ── Load black-box model F (FROZEN)
 model_name = "distilbert-base-uncased-finetuned-sst-2-english"
 model_F = AutoModelForSequenceClassification.from_pretrained(model_name).to(device)
 model_F.eval()
 for p in model_F.parameters():
-    p.requires_grad = False   # Paper: "parameters of F remain fixed throughout"
+    p.requires_grad = False   # "parameters of F remain fixed throughout"
 
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 
-# ── Mask embedding m (fixed, from F's embedding table) ──────────────────────
-mask_emb = get_mask_embedding(model_F, tokenizer, device)  # [D], detached
+
+mask_emb = get_mask_embedding(model_F, tokenizer, device) 
 
 # ── Attribution model Gθ ────────────────────────────────────────────────────
 model_G = AttributionModel(backbone_name="distilbert-base-uncased",
@@ -68,16 +68,16 @@ def aml_loss(logits_masked, logits_inv, scores, yv):
     """
     Equation (4):  L = λp*Lp + λa*La + λinv*Linv
     """
-    # Lp: cross-entropy between masked prediction and yv (Eq. 5)
+    # Lp: cross-entropy between masked prediction and yv 
     Lp = F.cross_entropy(logits_masked, yv.argmax(dim=-1))
 
-    # Linv: -log(1 - p_y(x''))  (Eq. 6)
+    # Linv: -log(1 - p_y(x''))  
     y_idx = yv.argmax(dim=-1)
     inv_probs = torch.softmax(logits_inv, dim=-1)
     p_y_inv = inv_probs.gather(1, y_idx.unsqueeze(1)).squeeze(1)
     Linv = -torch.mean(torch.log(1.0 - p_y_inv + 1e-8))
 
-    # La: BCE sparsity  -mean(log(1 - av[j]))  (Eq. 7)
+    # La: BCE sparsity  -mean(log(1 - av[j]))
     La = -torch.mean(torch.log(1.0 - scores + 1e-8))
 
     return LAMBDA_P * Lp + LAMBDA_INV * Linv + LAMBDA_A * La, Lp, Linv, La
@@ -88,12 +88,12 @@ def run_step(text_batch, train=True):
                        truncation=True, max_length=MAX_LEN)
     inputs = {k: v.to(device) for k, v in inputs.items()}
 
-    # Step 1 — original prediction yv (no grad needed, F is frozen)
+    
     with torch.no_grad():
         logits_orig = model_F(**inputs).logits
-        yv = torch.softmax(logits_orig, dim=-1)          # [B, C]
+        yv = torch.softmax(logits_orig, dim=-1)          
 
-    # Step 2 — attribution scores from Gθ
+    #  attribution scores from Gθ
     if train:
         scores = model_G(inputs["input_ids"], inputs["attention_mask"], yv)
     else:
@@ -101,11 +101,11 @@ def run_step(text_batch, train=True):
             scores = model_G(inputs["input_ids"], inputs["attention_mask"], yv)
     scores = torch.clamp(scores, 1e-4, 1 - 1e-4)
 
-    # Step 3 — get raw token embeddings (before positional encoding for simplicity)
+    
     with torch.no_grad():
         token_embs = model_F.distilbert.embeddings.word_embeddings(inputs["input_ids"])
 
-    # Step 4 — masked and inverse-masked forward passes through F
+    
     x_masked = soft_mask(token_embs, scores.detach() if not train else scores, mask_emb)
     x_inv    = inverse_mask(token_embs, scores.detach() if not train else scores, mask_emb)
 

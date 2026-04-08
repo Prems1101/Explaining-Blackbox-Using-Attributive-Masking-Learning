@@ -1,3 +1,14 @@
+---
+title: AML Explainability
+emoji: 🔍
+colorFrom: blue
+colorTo: indigo
+sdk: streamlit
+sdk_version: 1.43.0
+app_file: app/app.py
+pinned: false
+---
+
 # 🔍 AML Explainability: Attributive Masking Learning
 
 This repository hosts an implementation of **Attributive Masking Learning (AML)** for explaining black-box NLP classification models (such as DistilBERT), fine-tuned on the SST-2 sentiment dataset. It features an interactive Streamlit UI that allows users to instantly visualize which words heavily influenced the model's prediction.

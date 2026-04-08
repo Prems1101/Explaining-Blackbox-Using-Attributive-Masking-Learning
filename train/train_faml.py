@@ -23,12 +23,12 @@ from explain.masking_utils import soft_mask, inverse_mask, get_mask_embedding
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# ── Hyperparameters (same as pAML pretraining) ───────────────────────────────
+# ── Hyperparameters ) ───────────────────────────────
 LAMBDA_P   = 1.0
 LAMBDA_INV = 5.0
 LAMBDA_A   = 2.0
-FAML_LR    = 1e-4   # slightly higher LR for instance-specific finetuning
-FAML_STEPS = 20     # paper: "very small number of finetuning steps"
+FAML_LR    = 1e-4   
+FAML_STEPS = 20     
 MAX_LEN    = 128
 
 
@@ -71,9 +71,9 @@ def faml_explain(text, paml_checkpoint="paml_best.pt"):
     # Original prediction yv (fixed — F is frozen)
     with torch.no_grad():
         logits_orig = model_F(**inputs).logits
-        yv = torch.softmax(logits_orig, dim=-1)               # [1, C]
+        yv = torch.softmax(logits_orig, dim=-1)               
         token_embs = model_F.distilbert.embeddings.word_embeddings(
-            inputs["input_ids"])                              # [1, T, D]
+            inputs["input_ids"])                              
 
     label      = "POSITIVE" if yv[0, 1] > yv[0, 0] else "NEGATIVE"
     confidence = yv.max().item()
@@ -107,7 +107,7 @@ def faml_explain(text, paml_checkpoint="paml_best.pt"):
         torch.nn.utils.clip_grad_norm_(model_Gv.parameters(), 1.0)
         optimizer.step()
 
-        # Monitor comprehensiveness — keep best attribution map (Section 3.1)
+        # Monitor comprehensiveness — keep best attribution map
         with torch.no_grad():
             model_Gv.eval()
             s = model_Gv(inputs["input_ids"], inputs["attention_mask"], yv)
@@ -117,7 +117,7 @@ def faml_explain(text, paml_checkpoint="paml_best.pt"):
             li2 = model_F(inputs_embeds=xi,
                           attention_mask=inputs["attention_mask"]).logits
             inv_p = torch.softmax(li2, dim=-1)[0, yv.argmax(dim=-1)[0]].item()
-            comp = orig_p - inv_p  # comprehensiveness proxy
+            comp = orig_p - inv_p  
 
         if comp > best_comp:
             best_comp = comp

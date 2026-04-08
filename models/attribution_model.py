@@ -5,10 +5,10 @@ from transformers import AutoModel
 
 class AttributionModel(nn.Module):
     """
-    Attribution model Gθ as described in the AML paper (Section 3.3).
+    Attribution model Gθ .
 
     Architecture:
-    - RoBERTa backbone (pretrained)
+    -  backbone 
     - yv encoded via class embeddings Z and z0 token prepended to input
     - Shared MLP head: d → d → 1 per token (tanh hidden, sigmoid output)
     """
@@ -18,14 +18,14 @@ class AttributionModel(nn.Module):
 
         self.hidden_dim = hidden_dim
 
-        # Backbone
+        
         self.backbone = AutoModel.from_pretrained(backbone_name)
 
-        # yv encoding: z0 + class embeddings Z (Section 3.3)
+        
         self.z0 = nn.Parameter(torch.randn(hidden_dim) * 0.02)
         self.class_embeddings = nn.Parameter(torch.randn(num_classes, hidden_dim) * 0.02)
 
-        # MLP head: d → d → 1 per token
+        
         self.mlp = nn.Sequential(
             nn.Linear(hidden_dim, hidden_dim),
             nn.Tanh(),
@@ -34,7 +34,7 @@ class AttributionModel(nn.Module):
         )
 
     def encode_yv(self, y_probs):
-        """zv = z0 + sum_j( F(xv)[j] * z_j )  — Section 3.3"""
+        """zv = z0 + sum_j( F(xv)[j] * z_j )  — """
         weighted = torch.einsum("bc,cd->bd", y_probs, self.class_embeddings)
         return self.z0.unsqueeze(0) + weighted  # [B, D]
 
@@ -47,23 +47,22 @@ class AttributionModel(nn.Module):
         """
         B = input_ids.shape[0]
 
-        # Encode prediction info into zv token
-        zv = self.encode_yv(y_probs).unsqueeze(1)  # [B, 1, D]
+        
+        zv = self.encode_yv(y_probs).unsqueeze(1) 
 
-        # Token embeddings from backbone
-        token_embeds = self.backbone.embeddings.word_embeddings(input_ids)  # [B, T, D]
+        
+        token_embeds = self.backbone.embeddings.word_embeddings(input_ids)  
 
-        # Prepend zv token (paper: "append zv to xv and forward through backbone")
-        combined = torch.cat([zv, token_embeds], dim=1)  # [B, T+1, D]
+        # Prepend zv token ("append zv to xv and forward through backbone")
+        combined = torch.cat([zv, token_embeds], dim=1)     
         extra_mask = torch.ones(B, 1, dtype=attention_mask.dtype, device=attention_mask.device)
-        ext_mask = torch.cat([extra_mask, attention_mask], dim=1)  # [B, T+1]
+        ext_mask = torch.cat([extra_mask, attention_mask], dim=1)  
 
-        # Run backbone
+    
         hidden = self.backbone(inputs_embeds=combined, attention_mask=ext_mask).last_hidden_state
 
-        # Drop the prepended zv token
-        token_hidden = hidden[:, 1:, :]  # [B, T, D]
+        
+        token_hidden = hidden[:, 1:, :]  
 
-        # MLP head applied identically to each token
-        scores = self.mlp(token_hidden).squeeze(-1)  # [B, T]
+        scores = self.mlp(token_hidden).squeeze(-1)  
         return scores
