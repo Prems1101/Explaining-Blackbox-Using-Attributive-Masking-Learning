@@ -43,12 +43,12 @@ if st.button("Analyze", type="primary"):
     conf  = pred["score"]
 
     # ── Prediction ────────────────────────────────────────────────────────────
-    st.subheader("📊 LLM Prediction")
+    st.subheader("📊 Model Prediction (DistilBERT)")
     if label == "POSITIVE":
-        st.success(f"{mode} → Label: **{label}**")
+        st.success(f"DistilBERT → Label: **{label}**")
     else:
-        st.error(f"{mode} → Label: **{label}**")
-    st.metric("Confidence", f"{conf:.4f}")
+        st.error(f"DistilBERT → Label: **{label}**")
+    st.metric("Confidence (DistilBERT)", f"{conf:.4f}")
 
     # ── Word highlight ────────────────────────────────────────────────────────
     st.subheader("🧠 Important Words")
